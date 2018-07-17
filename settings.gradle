@@ -7,7 +7,7 @@ pluginManagement {
     }
 }
 
-rootProject.name = 'sonar-auth-saml-plugin'
+rootProject.name = 'sonar-auth-saml'
 
 include 'sonar-auth-saml-plugin'
 
