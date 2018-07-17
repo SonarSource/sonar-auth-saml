@@ -27,4 +27,5 @@ public class AuthSamlPlugin implements Plugin {
   public void define(Context context) {
     context.addExtension(SamlIdentityProvider.class);
   }
+
 }
