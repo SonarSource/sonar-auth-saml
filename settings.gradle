@@ -1,0 +1,14 @@
+pluginManagement {
+    repositories {
+        maven {
+            url 'https://repox.sonarsource.com/plugins.gradle.org/'
+        }
+        gradlePluginPortal()
+    }
+}
+
+rootProject.name = 'sonar-auth-saml-plugin'
+
+include 'sonar-auth-saml-plugin'
+
+include 'tests'
