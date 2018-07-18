@@ -21,11 +21,14 @@ package org.sonarsource.tests;
 
 import org.junit.Test;
 
+import static org.assertj.core.api.Assertions.assertThat;
+
 public class SamlTestSuite {
 
   @Test
   public void empty() {
     // TODO
+    assertThat(true).isFalse();
   }
 
 }
