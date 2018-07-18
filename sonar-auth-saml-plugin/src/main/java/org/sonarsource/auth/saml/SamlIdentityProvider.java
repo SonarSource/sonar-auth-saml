@@ -19,6 +19,12 @@
  */
 package org.sonarsource.auth.saml;
 
+import com.onelogin.saml2.Auth;
+import com.onelogin.saml2.settings.Saml2Settings;
+import com.onelogin.saml2.settings.SettingsBuilder;
+import java.net.URL;
+import java.util.HashMap;
+import java.util.Map;
 import org.sonar.api.server.ServerSide;
 import org.sonar.api.server.authentication.Display;
 import org.sonar.api.server.authentication.OAuth2IdentityProvider;
@@ -42,7 +48,7 @@ public class SamlIdentityProvider implements OAuth2IdentityProvider {
 
   @Override
   public String getName() {
-    return "GitHub";
+    return "SAML";
   }
 
   @Override
@@ -66,7 +72,23 @@ public class SamlIdentityProvider implements OAuth2IdentityProvider {
 
   @Override
   public void init(InitContext context) {
-    // TODO
+    try {
+      Map<String, Object> samlData = new HashMap<>();
+      samlData.put("onelogin.saml2.sp.entityid", "http://localhost:8080/saml-servlet-filter");
+      samlData.put("onelogin.saml2.sp.assertion_consumer_service.url", new URL("http://localhost:8080/saml-servlet-filter"));
+      samlData.put("onelogin.saml2.security.want_xml_validation", true);
+      samlData.put("onelogin.saml2.sp.x509cert",
+        "MIIB1DCCAT0CBgFJGP5dZDANBgkqhkiG9w0BAQsFADAwMS4wLAYDVQQDEyVodHRwOi8vbG9jYWxob3N0OjgwODAvc2FsZXMtcG9zdC1zaWcvMB4XDTE0MTAxNjEyNDQyM1oXDTI0MTAxNjEyNDYwM1owMDEuMCwGA1UEAxMlaHR0cDovL2xvY2FsaG9zdDo4MDgwL3NhbGVzLXBvc3Qtc2lnLzCBnzANBgkqhkiG9w0BAQEFAAOBjQAwgYkCgYEA1RvGu8RjemSJA23nnMksoHA37MqY1DDTxOECY4rPAd9egr7GUNIXE0y1MokaR5R2crNpN8RIRwR8phQtQDjXL82c6W+NLQISxztarQJ7rdNJIYwHY0d5ri1XRpDP8zAuxubPYiMAVYcDkIcvlbBpwh/dRM5I2eElRK+eSiaMkCUCAwEAATANBgkqhkiG9w0BAQsFAAOBgQCLms6htnPaY69k1ntm9a5jgwSn/K61cdai8R8B0ccY7zvinn9AfRD7fiROQpFyY29wKn8WCLrJ86NBXfgFUGyR5nLNHVy3FghE36N2oHy53uichieMxffE6vhkKJ4P8ChfJMMOZlmCPsQPDvjoAghHt4mriFiQgRdPgIy/zDjSNw==");
+
+      SettingsBuilder builder = new SettingsBuilder();
+      Saml2Settings settings = builder.fromValues(samlData).build();
+
+      Auth auth = new Auth(settings, context.getRequest(), context.getResponse());
+      auth.login();
+
+    } catch (Exception e) {
+      throw new IllegalStateException("Fail to init", e);
+    }
   }
 
   @Override

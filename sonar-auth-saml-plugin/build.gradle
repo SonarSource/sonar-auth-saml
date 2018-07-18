@@ -13,6 +13,13 @@ compileJava {
 compileTestJava.options.encoding = "UTF-8"
 
 dependencies {
+  compileOnly 'com.onelogin:java-saml:2.3.0'
+  runtime 'com.onelogin:java-saml:2.3.0'
+  compile 'com.onelogin:java-saml-core:2.3.0'
+  runtime 'com.onelogin:java-saml-core:2.3.0'
+  compileOnly 'javax.servlet:servlet-api:2.5'
+  runtime 'javax.servlet:servlet-api:2.5'
+
   compileOnly 'com.google.code.findbugs:jsr305'
   compile 'org.sonarsource.sonarqube:sonar-plugin-api'
 
