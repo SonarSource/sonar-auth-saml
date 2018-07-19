@@ -30,8 +30,8 @@ import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
 import java.util.stream.Collectors;
+import javax.annotation.CheckForNull;
 import javax.annotation.Nullable;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -40,6 +40,8 @@ import org.sonar.api.server.authentication.Display;
 import org.sonar.api.server.authentication.OAuth2IdentityProvider;
 import org.sonar.api.server.authentication.UnauthorizedException;
 import org.sonar.api.server.authentication.UserIdentity;
+
+import static java.util.Objects.requireNonNull;
 
 @ServerSide
 public class SamlIdentityProvider implements OAuth2IdentityProvider {
@@ -104,7 +106,7 @@ public class SamlIdentityProvider implements OAuth2IdentityProvider {
     context.authenticate(UserIdentity.builder()
       .setLogin(login)
       .setProviderLogin(login)
-      .setName(Objects.requireNonNull(getAttribute(auth, samlSettings.getUserName()), "Name is missing"))
+      .setName(requireNonNull(getAttribute(auth, samlSettings.getUserName()), "Name is missing"))
       .setEmail(getAttribute(auth, samlSettings.getUserEmail()))
       .build());
     context.redirectToRequestedPage();
@@ -146,9 +148,10 @@ public class SamlIdentityProvider implements OAuth2IdentityProvider {
     throw new UnauthorizedException(errorMessage);
   }
 
+  @CheckForNull
   private static String getAttribute(Auth auth, String key) {
     Collection<String> attribute = auth.getAttribute(key);
-    if (attribute.isEmpty()) {
+    if (attribute == null || attribute.isEmpty()) {
       return null;
     }
     return attribute.iterator().next();
