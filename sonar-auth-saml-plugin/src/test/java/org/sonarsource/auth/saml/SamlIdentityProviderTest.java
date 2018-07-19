@@ -32,7 +32,7 @@ public class SamlIdentityProviderTest {
   @Rule
   public ExpectedException thrown = ExpectedException.none();
 
-  private SamlIdentityProvider underTest = new SamlIdentityProvider();
+  private SamlIdentityProvider underTest = new SamlIdentityProvider(null);
 
   @Test
   public void check_fields() {

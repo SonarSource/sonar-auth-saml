@@ -28,15 +28,15 @@ import static org.mockito.Mockito.mock;
 
 public class AuthSamlPluginTest {
 
-  MockContext context = new MockContext();
+  private MockContext context = new MockContext();
 
-  AuthSamlPlugin underTest = new AuthSamlPlugin();
+  private AuthSamlPlugin underTest = new AuthSamlPlugin();
 
   @Test
   public void test_extensions() {
     underTest.define(context);
 
-    assertThat(context.getExtensions()).hasSize(1);
+    assertThat(context.getExtensions()).hasSize(9);
   }
 
   private static class MockContext extends Plugin.Context {
