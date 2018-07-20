@@ -19,20 +19,47 @@
  */
 package org.sonarsource.auth.saml;
 
+import com.onelogin.saml2.Auth;
+import com.onelogin.saml2.exception.SettingsException;
+import com.onelogin.saml2.settings.Saml2Settings;
+import com.onelogin.saml2.settings.SettingsBuilder;
+import java.io.IOException;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import javax.annotation.CheckForNull;
+import javax.annotation.Nullable;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
 import org.sonar.api.server.ServerSide;
 import org.sonar.api.server.authentication.Display;
 import org.sonar.api.server.authentication.OAuth2IdentityProvider;
+import org.sonar.api.server.authentication.UnauthorizedException;
+import org.sonar.api.server.authentication.UserIdentity;
 import org.sonar.api.utils.log.Logger;
 import org.sonar.api.utils.log.Loggers;
+
+import static java.util.Collections.emptySet;
+import static java.util.Objects.requireNonNull;
 
 @ServerSide
 public class SamlIdentityProvider implements OAuth2IdentityProvider {
 
-  static final String KEY = "saml";
+  private static final String KEY = "saml";
 
   private static final Logger LOGGER = Loggers.get(SamlIdentityProvider.class);
 
-  public SamlIdentityProvider() {
+  private static final String ANY_URL = "http://anyurl";
+
+  private final SamlSettings samlSettings;
+  private final CsrfVerifier csrfVerifier;
+
+  public SamlIdentityProvider(SamlSettings samlSettings, CsrfVerifier csrfVerifier) {
+    this.samlSettings = samlSettings;
+    this.csrfVerifier = csrfVerifier;
   }
 
   @Override
@@ -42,21 +69,21 @@ public class SamlIdentityProvider implements OAuth2IdentityProvider {
 
   @Override
   public String getName() {
-    return "GitHub";
+    return samlSettings.getProviderName();
   }
 
   @Override
   public Display getDisplay() {
     return Display.builder()
-      // URL of src/main/resources/static/saml.svg at runtime
-      .setIconPath("/static/authsaml/saml.svg")
+      // URL of src/main/resources/static/saml.png at runtime
+      .setIconPath("/static/authsaml/saml.png")
       .setBackgroundColor("#444444")
       .build();
   }
 
   @Override
   public boolean isEnabled() {
-    return true;
+    return samlSettings.isEnabled();
   }
 
   @Override
@@ -66,11 +93,100 @@ public class SamlIdentityProvider implements OAuth2IdentityProvider {
 
   @Override
   public void init(InitContext context) {
-    // TODO
+    try {
+      Auth auth = newAuth(initSettings(context.getCallbackUrl()), context.getRequest(), context.getResponse());
+      auth.login(csrfVerifier.generateState(context.getRequest(), context.getResponse()));
+    } catch (IOException | SettingsException e) {
+      throw new IllegalStateException("Fail to intialize SAML authentication plugin", e);
+    }
   }
 
   @Override
   public void callback(CallbackContext context) {
-    // TODO
+    Auth auth = newAuth(initSettings(null), context.getRequest(), context.getResponse());
+    processResponse(auth);
+    csrfVerifier.verifyState(context.getRequest(), context.getResponse());
+
+    LOGGER.trace("Name ID : {}", auth.getNameId());
+    checkAuthentication(auth);
+
+    LOGGER.trace("Attributes received : {}", auth.getAttributes());
+    String login = getNonNullFirstAttribute(auth, samlSettings.getUserLogin());
+    UserIdentity.Builder userIdentityBuilder = UserIdentity.builder()
+      .setLogin(login)
+      .setProviderLogin(login)
+      .setName(getNonNullFirstAttribute(auth, samlSettings.getUserName()));
+    samlSettings.getUserEmail().ifPresent(
+      email -> userIdentityBuilder.setEmail(getFirstAttribute(auth, email)));
+    samlSettings.getGroupName().ifPresent(
+      group -> userIdentityBuilder.setGroups(getGroups(auth, group)));
+    context.authenticate(userIdentityBuilder.build());
+    context.redirectToRequestedPage();
+  }
+
+  private static Auth newAuth(Saml2Settings saml2Settings, HttpServletRequest request, HttpServletResponse response) {
+    try {
+      return new Auth(saml2Settings, request, response);
+    } catch (SettingsException e) {
+      throw new IllegalStateException("Fail to create Auth", e);
+    }
+  }
+
+  private static void processResponse(Auth auth) {
+    try {
+      auth.processResponse();
+    } catch (Exception e) {
+      throw new IllegalStateException("Fail to process response", e);
+    }
+  }
+
+  private static void checkAuthentication(Auth auth) {
+    List<String> errors = auth.getErrors();
+    if (auth.isAuthenticated() && errors.isEmpty()) {
+      return;
+    }
+    String errorReason = auth.getLastErrorReason();
+    throw new UnauthorizedException(errorReason != null && !errorReason.isEmpty() ? errorReason : "Unknown error reason");
+  }
+
+  private static String getNonNullFirstAttribute(Auth auth, String key) {
+    String attribute = getFirstAttribute(auth, key);
+    requireNonNull(attribute, String.format("%s is missing", key));
+    return attribute;
+  }
+
+  @CheckForNull
+  private static String getFirstAttribute(Auth auth, String key) {
+    Collection<String> attribute = auth.getAttribute(key);
+    if (attribute == null || attribute.isEmpty()) {
+      return null;
+    }
+    return attribute.iterator().next();
+  }
+
+  private static Set<String> getGroups(Auth auth, String groupAttribute) {
+    Collection<String> attribute = auth.getAttribute(groupAttribute);
+    if (attribute == null || attribute.isEmpty()) {
+      return emptySet();
+    }
+    return new HashSet<>(attribute);
+  }
+
+  private Saml2Settings initSettings(@Nullable String callbackUrl) {
+    Map<String, Object> samlData = new HashMap<>();
+    // TODO strict mode is unfortunately not compatible with HTTPS configuration on reverse proxy => https://jira.sonarsource.com/browse/SQAUTHSAML-8
+    samlData.put("onelogin.saml2.strict", false);
+
+    samlData.put("onelogin.saml2.idp.entityid", samlSettings.getProviderId());
+    samlData.put("onelogin.saml2.idp.single_sign_on_service.url", samlSettings.getLoginUrl());
+    samlData.put("onelogin.saml2.idp.x509cert", samlSettings.getCertificate());
+
+    samlData.put("onelogin.saml2.sp.entityid", samlSettings.getApplicationId());
+    // During callback, the callback URL is by definition not needed, but the Saml2Settings does never allow this setting to be empty...
+    samlData.put("onelogin.saml2.sp.assertion_consumer_service.url", callbackUrl != null ? callbackUrl : ANY_URL);
+    SettingsBuilder builder = new SettingsBuilder();
+    return builder
+      .fromValues(samlData)
+      .build();
   }
 }

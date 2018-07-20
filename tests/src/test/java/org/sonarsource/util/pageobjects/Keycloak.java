@@ -17,31 +17,22 @@
  * along with this program; if not, write to the Free Software Foundation,
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
-package org.sonarsource.auth.saml;
+package org.sonarsource.util.pageobjects;
 
-import org.junit.Test;
-import org.sonar.api.Plugin;
-import org.sonar.api.SonarRuntime;
+import com.codeborne.selenide.Condition;
+import com.codeborne.selenide.Selenide;
 
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.Mockito.mock;
+public class Keycloak {
 
-public class AuthSamlPluginTest {
-
-  private MockContext context = new MockContext();
-
-  private AuthSamlPlugin underTest = new AuthSamlPlugin();
-
-  @Test
-  public void test_extensions() {
-    underTest.define(context);
-
-    assertThat(context.getExtensions()).hasSize(13);
+  public Keycloak() {
+    Selenide.$("#kc-form-login").should(Condition.exist);
   }
 
-  private static class MockContext extends Plugin.Context {
-    MockContext() {
-      super(mock(SonarRuntime.class));
-    }
+  public Navigation submitCredentials(String login, String password) {
+    Selenide.$("#username").val(login);
+    Selenide.$("#password").val(password);
+    Selenide.$("[type=submit]").click();
+    Selenide.$("#kc-form-login").should(Condition.disappear);
+    return Selenide.page(Navigation.class);
   }
 }

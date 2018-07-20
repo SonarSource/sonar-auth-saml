@@ -33,6 +33,10 @@ allprojects {
   }
 }
 
+ext {
+  oneLoginVersion = '2.3.0'
+}
+
 subprojects {
   // do not publish to Artifactory by default
   artifactoryPublish.skip = true
@@ -43,14 +47,22 @@ subprojects {
 
   dependencyManagement {
     dependencies {
+      dependency 'org.sonarsource.sonarqube:sonar-plugin-api:6.7'
+      dependency 'org.sonarsource.orchestrator:sonar-orchestrator:3.19.0.1641'
+
+      dependency "com.onelogin:java-saml:${oneLoginVersion}"
+      dependency "com.onelogin:java-saml-core:${oneLoginVersion}"
+      dependency 'javax.servlet:javax.servlet-api:3.1.0'
+
       dependency 'com.google.code.findbugs:jsr305:3.0.2'
+
       dependency 'org.assertj:assertj-core:3.9.0'
       dependency 'junit:junit:4.12'
       dependency('org.mockito:mockito-core:2.15.0') {
         exclude 'org.hamcrest:hamcrest-core'
       }
-      dependency 'org.sonarsource.sonarqube:sonar-plugin-api:7.2'
-      dependency 'org.sonarsource.orchestrator:sonar-orchestrator:3.19.0.1641'
+      dependency 'com.tngtech.java:junit-dataprovider:1.9.2'
+      dependency 'org.apache.commons:commons-io:1.3.2'
     }
   }
 
