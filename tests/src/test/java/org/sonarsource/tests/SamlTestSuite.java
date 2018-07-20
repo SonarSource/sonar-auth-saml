@@ -19,13 +19,41 @@
  */
 package org.sonarsource.tests;
 
-import org.junit.Test;
+import com.sonar.orchestrator.Orchestrator;
+import com.sonar.orchestrator.OrchestratorBuilder;
+import com.sonar.orchestrator.locator.FileLocation;
+import com.sonar.orchestrator.locator.Location;
+import com.sonar.orchestrator.locator.MavenLocation;
+import java.io.File;
+import org.apache.commons.lang.StringUtils;
+import org.junit.ClassRule;
+import org.junit.runner.RunWith;
+import org.junit.runners.Suite;
 
+@RunWith(Suite.class)
+@Suite.SuiteClasses({
+  SamlTest.class
+})
 public class SamlTestSuite {
 
-  @Test
-  public void empty() {
-    // TODO
+  @ClassRule
+  public static final Orchestrator ORCHESTRATOR;
+
+  static {
+    String defaultRuntimeVersion = "true".equals(System.getenv("SONARSOURCE_QA")) ? null : "6.7";
+    OrchestratorBuilder builder = Orchestrator.builderEnv()
+      .setSonarVersion(System.getProperty("sonar.runtimeVersion", defaultRuntimeVersion));
+
+    String pluginVersion = System.getProperty("samlVersion");
+    Location pluginLocation;
+    if (StringUtils.isEmpty(pluginVersion) || pluginVersion.endsWith("-SNAPSHOT")) {
+      pluginLocation = FileLocation.byWildcardMavenFilename(new File("../sonar-auth-saml-plugin/build/libs"), "sonar-auth-saml-plugin-*-all.jar");
+    } else {
+      pluginLocation = MavenLocation.of("org.sonarsource.auth.saml", "sonar-auth-saml-plugin", pluginVersion);
+    }
+    builder.addPlugin(pluginLocation);
+
+    ORCHESTRATOR = builder.build();
   }
 
 }

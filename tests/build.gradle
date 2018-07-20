@@ -7,11 +7,17 @@ description = 'SonarQube :: SAML 2.0 Authentication :: Integration Tests'
 dependencies {
   // please keep the list ordered
 
+  testCompile 'org.sonarsource.sonarqube:sonar-ws:6.7'
+  testCompile 'org.sonarsource.orchestrator:sonar-orchestrator'
+
   testCompile 'junit:junit'
   testCompile 'org.assertj:assertj-core'
-  testCompile 'org.sonarsource.orchestrator:sonar-orchestrator'
-  testCompile 'org.sonarsource.sonarqube:sonar-ws:6.7'
-  testCompile 'com.google.code.findbugs:jsr305:2.0.2'
+  testCompile 'com.codeborne:selenide:4.8'
+
+  testCompile 'org.keycloak:keycloak-admin-client:4.1.0.Final'
+  testCompile 'org.jboss.resteasy:resteasy-jaxrs:3.6.0.Final'
+  testCompile 'org.jboss.resteasy:resteasy-client:3.6.0.Final'
+  testCompile 'org.jboss.resteasy:resteasy-jackson2-provider:3.6.0.Final'
 }
 
 sonarqube.skipProject = true
@@ -27,7 +33,7 @@ task integrationTest(type: Test) {
     it.key.startsWith("orchestrator") || it.key.startsWith("sonar")
   }.collect { it.key }
   systemProperties System.getProperties().subMap(orchestratorProps)
-  systemProperty 'goVersion', version
+  systemProperty 'samlVersion', version
 }
 
 // UT are excluded in order for ITs to only run when needed
