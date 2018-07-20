@@ -1,0 +1,4 @@
+- Set the server log in TRACE
+- Login with a user
+- Search in the logs for "[c.o.saml2.Auth] processResponse success -->"
+- The value after the "-->" is the encoded response that can be used in test
