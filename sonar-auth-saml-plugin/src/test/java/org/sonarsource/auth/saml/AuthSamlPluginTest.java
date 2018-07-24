@@ -36,7 +36,7 @@ public class AuthSamlPluginTest {
   public void test_extensions() {
     underTest.define(context);
 
-    assertThat(context.getExtensions()).hasSize(12);
+    assertThat(context.getExtensions()).hasSize(13);
   }
 
   private static class MockContext extends Plugin.Context {

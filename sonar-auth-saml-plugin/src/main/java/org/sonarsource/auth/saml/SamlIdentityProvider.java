@@ -53,14 +53,16 @@ public class SamlIdentityProvider implements OAuth2IdentityProvider {
   private static final Logger LOGGER = Loggers.get(SamlIdentityProvider.class);
 
   private final SamlSettings samlSettings;
+  private final CsrfVerifier csrfVerifier;
   private final boolean strictMode;
 
-  public SamlIdentityProvider(SamlSettings samlSettings) {
-    this(samlSettings, true);
+  public SamlIdentityProvider(SamlSettings samlSettings, CsrfVerifier csrfVerifier) {
+    this(samlSettings, csrfVerifier, true);
   }
 
-  SamlIdentityProvider(SamlSettings samlSettings, boolean strictMode) {
+  SamlIdentityProvider(SamlSettings samlSettings, CsrfVerifier csrfVerifier, boolean strictMode) {
     this.samlSettings = samlSettings;
+    this.csrfVerifier = csrfVerifier;
     this.strictMode = strictMode;
   }
 
@@ -97,7 +99,7 @@ public class SamlIdentityProvider implements OAuth2IdentityProvider {
   public void init(InitContext context) {
     try {
       Auth auth = newAuth(initSettings(context.getCallbackUrl()), context.getRequest(), context.getResponse());
-      auth.login();
+      auth.login(csrfVerifier.generateState(context.getRequest(), context.getResponse()));
     } catch (IOException | SettingsException e) {
       throw new IllegalStateException("Fail to init", e);
     }
@@ -107,6 +109,7 @@ public class SamlIdentityProvider implements OAuth2IdentityProvider {
   public void callback(CallbackContext context) {
     Auth auth = newAuth(initSettings(null), context.getRequest(), context.getResponse());
     processResponse(auth);
+    csrfVerifier.verifyState(context.getRequest(), context.getResponse());
 
     LOGGER.trace("Name ID : {}", auth.getNameId());
     checkAuthentication(auth);

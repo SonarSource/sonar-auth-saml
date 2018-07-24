@@ -26,6 +26,7 @@ public class AuthSamlPlugin implements Plugin {
   @Override
   public void define(Context context) {
     context.addExtensions(
+      CsrfVerifier.class,
       SamlIdentityProvider.class,
       SamlSettings.class);
     context.addExtensions(SamlSettings.definitions());

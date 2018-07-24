@@ -18,8 +18,8 @@ dependencies {
   compile 'com.onelogin:java-saml-core:'
   runtime 'com.onelogin:java-saml-core'
 
-  compileOnly 'javax.servlet:servlet-api'
-  runtime 'javax.servlet:servlet-api'
+  compileOnly 'javax.servlet:javax.servlet-api'
+  runtime 'javax.servlet:javax.servlet-api'
 
   compileOnly 'com.google.code.findbugs:jsr305'
   compile 'org.sonarsource.sonarqube:sonar-plugin-api'
@@ -28,7 +28,7 @@ dependencies {
   testCompile 'org.assertj:assertj-core'
   testCompile 'junit:junit'
   testCompile 'com.tngtech.java:junit-dataprovider'
-  testCompile 'javax.servlet:servlet-api'
+  testCompile 'javax.servlet:javax.servlet-api'
   testCompile 'org.apache.commons:commons-io'
 }
 

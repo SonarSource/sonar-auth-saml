@@ -37,6 +37,7 @@ import org.sonar.api.server.authentication.UnauthorizedException;
 import org.sonar.api.server.authentication.UserIdentity;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
@@ -49,7 +50,9 @@ public class SamlIdentityProviderTest {
 
   private MapSettings settings = new MapSettings(new PropertyDefinitions(SamlSettings.definitions()));
 
-  private SamlIdentityProvider underTest = new SamlIdentityProvider(new SamlSettings(settings.asConfig()), false);
+  private CsrfVerifier csrfVerifier = mock(CsrfVerifier.class);
+
+  private SamlIdentityProvider underTest = new SamlIdentityProvider(new SamlSettings(settings.asConfig()), csrfVerifier, false);
 
   @Test
   public void check_fields() {
@@ -87,6 +90,7 @@ public class SamlIdentityProviderTest {
     underTest.init(context);
 
     verify(context.response).sendRedirect(anyString());
+    verify(csrfVerifier).generateState(any(HttpServletRequest.class), any(HttpServletResponse.class));
   }
 
   @Test
@@ -102,13 +106,23 @@ public class SamlIdentityProviderTest {
   }
 
   @Test
-  public void callback_on_full_response() {
+  public void callback() {
     setSettings(true);
     DumbCallbackContext callbackContext = new DumbCallbackContext("encoded_full_response.txt");
 
     underTest.callback(callbackContext);
 
     assertThat(callbackContext.redirectedToRequestedPage.get()).isTrue();
+    assertThat(callbackContext.userIdentity.getLogin()).isEqualTo("johndoe");
+    verify(csrfVerifier).verifyState(any(HttpServletRequest.class), any(HttpServletResponse.class));
+  }
+
+  @Test
+  public void callback_on_full_response() {
+    setSettings(true);
+    DumbCallbackContext callbackContext = new DumbCallbackContext("encoded_full_response.txt");
+
+    underTest.callback(callbackContext);
 
     assertThat(callbackContext.userIdentity.getLogin()).isEqualTo("johndoe");
     assertThat(callbackContext.userIdentity.getName()).isEqualTo("John Doe");
@@ -124,8 +138,6 @@ public class SamlIdentityProviderTest {
 
     underTest.callback(callbackContext);
 
-    assertThat(callbackContext.redirectedToRequestedPage.get()).isTrue();
-
     assertThat(callbackContext.userIdentity.getLogin()).isEqualTo("johndoe");
     assertThat(callbackContext.userIdentity.getName()).isEqualTo("John Doe");
     assertThat(callbackContext.userIdentity.getEmail()).isNull();
@@ -140,8 +152,6 @@ public class SamlIdentityProviderTest {
     DumbCallbackContext callbackContext = new DumbCallbackContext("encoded_full_response.txt");
 
     underTest.callback(callbackContext);
-
-    assertThat(callbackContext.redirectedToRequestedPage.get()).isTrue();
 
     assertThat(callbackContext.userIdentity.getLogin()).isEqualTo("johndoe");
     assertThat(callbackContext.userIdentity.getGroups()).isEmpty();
