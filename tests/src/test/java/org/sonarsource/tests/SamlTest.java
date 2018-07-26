@@ -53,6 +53,10 @@ public class SamlTest {
   @ClassRule
   public static Orchestrator orchestrator = SamlTestSuite.ORCHESTRATOR;
 
+  /**
+   * Note that the KeycloakServices is not isolated : each test is using the saml realm 'QA' and all users are deleted after each test.
+   * As a consequence, there may appear some FPs if 2 tests are executed at the same time (2 PRs, 1 PR and one local execution, etc.)
+   */
   @Rule
   public KeycloakServices keycloakServices = new KeycloakServices();
 

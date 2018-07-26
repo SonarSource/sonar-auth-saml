@@ -142,6 +142,17 @@ public class SamlSettingsTest {
     assertThat(underTest.isEnabled()).isFalse();
   }
 
+  @Test
+  public void is_enabled_using_default_values() {
+    settings.setProperty("sonar.auth.saml.providerId", "http://localhost:8080/auth/realms/sonarqube");
+    settings.setProperty("sonar.auth.saml.loginUrl", "http://localhost:8080/auth/realms/sonarqube/protocol/saml");
+    settings.setProperty("sonar.auth.saml.certificate.secured", "ABCDEFG");
+    settings.setProperty("sonar.auth.saml.user.login", "login");
+    settings.setProperty("sonar.auth.saml.user.name", "name");
+    settings.setProperty("sonar.auth.saml.enabled", true);
+    assertThat(underTest.isEnabled()).isTrue();
+  }
+
   @DataProvider
   public static Object[][] settingsRequiredToEnablePlugin() {
     return new Object[][] {

@@ -94,12 +94,12 @@ public class SamlSettings {
 
   boolean isEnabled() {
     return configuration.getBoolean(ENABLED).orElse(false) &&
-      configuration.hasKey(PROVIDER_ID) &&
-      configuration.hasKey(APPLICATION_ID) &&
-      configuration.hasKey(LOGIN_URL) &&
-      configuration.hasKey(CERTIFICATE) &&
-      configuration.hasKey(USER_LOGIN_ATTRIBUTE) &&
-      configuration.hasKey(USER_NAME_ATTRIBUTE);
+      configuration.get(PROVIDER_ID).isPresent() &&
+      configuration.get(APPLICATION_ID).isPresent() &&
+      configuration.get(LOGIN_URL).isPresent() &&
+      configuration.get(CERTIFICATE).isPresent() &&
+      configuration.get(USER_LOGIN_ATTRIBUTE).isPresent() &&
+      configuration.get(USER_NAME_ATTRIBUTE).isPresent();
   }
 
   @CheckForNull

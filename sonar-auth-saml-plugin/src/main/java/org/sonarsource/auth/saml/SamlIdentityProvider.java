@@ -83,9 +83,9 @@ public class SamlIdentityProvider implements OAuth2IdentityProvider {
   @Override
   public Display getDisplay() {
     return Display.builder()
-      // URL of src/main/resources/static/saml.svg at runtime
-      .setIconPath("/static/authsaml/saml.svg")
-      .setBackgroundColor("#444444")
+      // URL of src/main/resources/static/saml.png at runtime
+      .setIconPath("/static/authsaml/saml.png")
+      .setBackgroundColor("#ffffff")
       .build();
   }
 
@@ -119,11 +119,11 @@ public class SamlIdentityProvider implements OAuth2IdentityProvider {
     checkAuthentication(auth);
 
     LOGGER.trace("Attributes received : {}", auth.getAttributes());
-    String login = requireNonNull(getFirstAttribute(auth, samlSettings.getUserLogin()), "Login is missing");
+    String login = getNonNullFirstAttribute(auth, samlSettings.getUserLogin());
     UserIdentity.Builder userIdentityBuilder = UserIdentity.builder()
       .setLogin(login)
       .setProviderLogin(login)
-      .setName(requireNonNull(getFirstAttribute(auth, samlSettings.getUserName()), "Name is missing"));
+      .setName(getNonNullFirstAttribute(auth, samlSettings.getUserName()));
     samlSettings.getUserEmail().ifPresent(
       email -> userIdentityBuilder.setEmail(getFirstAttribute(auth, email)));
     samlSettings.getGroupName().ifPresent(
@@ -155,6 +155,12 @@ public class SamlIdentityProvider implements OAuth2IdentityProvider {
     }
     String errorReason = auth.getLastErrorReason();
     throw new UnauthorizedException(errorReason != null && !errorReason.isEmpty() ? errorReason : "Unknown error reason");
+  }
+
+  private static String getNonNullFirstAttribute(Auth auth, String key) {
+    String attribute = getFirstAttribute(auth, key);
+    requireNonNull(attribute, String.format("%s is missing", key));
+    return attribute;
   }
 
   @CheckForNull

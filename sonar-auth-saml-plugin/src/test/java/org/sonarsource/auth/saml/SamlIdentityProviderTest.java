@@ -59,8 +59,8 @@ public class SamlIdentityProviderTest {
     setSettings(true);
     assertThat(underTest.getKey()).isEqualTo("saml");
     assertThat(underTest.getName()).isEqualTo("SAML");
-    assertThat(underTest.getDisplay().getIconPath()).isEqualTo("/static/authsaml/saml.svg");
-    assertThat(underTest.getDisplay().getBackgroundColor()).isEqualTo("#444444");
+    assertThat(underTest.getDisplay().getIconPath()).isEqualTo("/static/authsaml/saml.png");
+    assertThat(underTest.getDisplay().getBackgroundColor()).isEqualTo("#ffffff");
     assertThat(underTest.allowsUsersToSignUp()).isTrue();
   }
 
@@ -163,7 +163,7 @@ public class SamlIdentityProviderTest {
     DumbCallbackContext callbackContext = new DumbCallbackContext("encoded_response_without_login.txt");
 
     expectedException.expect(NullPointerException.class);
-    expectedException.expectMessage("Login is missing");
+    expectedException.expectMessage("login is missing");
 
     underTest.callback(callbackContext);
   }
@@ -174,7 +174,7 @@ public class SamlIdentityProviderTest {
     DumbCallbackContext callbackContext = new DumbCallbackContext("encoded_response_without_name.txt");
 
     expectedException.expect(NullPointerException.class);
-    expectedException.expectMessage("Name is missing");
+    expectedException.expectMessage("name is missing");
 
     underTest.callback(callbackContext);
   }
