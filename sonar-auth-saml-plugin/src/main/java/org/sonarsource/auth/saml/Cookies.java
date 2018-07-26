@@ -30,7 +30,7 @@ import static java.util.Objects.requireNonNull;
 /**
  * This class is a copy of org.sonar.server.authentication.Cookies from SonarQube codebase
  *
- * When using SonarQube 7.3 (https://jira.sonarsource.com/browse/SONAR-11072), this class should be removed
+ * TODO When using SonarQube 7.3 (https://jira.sonarsource.com/browse/SONAR-11072), this class should be removed
  */
 public class Cookies {
 

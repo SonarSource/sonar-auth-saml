@@ -34,6 +34,7 @@ import javax.annotation.CheckForNull;
 import javax.annotation.Nullable;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import org.sonar.api.internal.google.common.annotations.VisibleForTesting;
 import org.sonar.api.server.ServerSide;
 import org.sonar.api.server.authentication.Display;
 import org.sonar.api.server.authentication.OAuth2IdentityProvider;
@@ -52,6 +53,8 @@ public class SamlIdentityProvider implements OAuth2IdentityProvider {
 
   private static final Logger LOGGER = Loggers.get(SamlIdentityProvider.class);
 
+  private static final String ANY_URL = "http://anyurl";
+
   private final SamlSettings samlSettings;
   private final CsrfVerifier csrfVerifier;
   private final boolean strictMode;
@@ -60,6 +63,7 @@ public class SamlIdentityProvider implements OAuth2IdentityProvider {
     this(samlSettings, csrfVerifier, true);
   }
 
+  @VisibleForTesting
   SamlIdentityProvider(SamlSettings samlSettings, CsrfVerifier csrfVerifier, boolean strictMode) {
     this.samlSettings = samlSettings;
     this.csrfVerifier = csrfVerifier;
@@ -101,7 +105,7 @@ public class SamlIdentityProvider implements OAuth2IdentityProvider {
       Auth auth = newAuth(initSettings(context.getCallbackUrl()), context.getRequest(), context.getResponse());
       auth.login(csrfVerifier.generateState(context.getRequest(), context.getResponse()));
     } catch (IOException | SettingsException e) {
-      throw new IllegalStateException("Fail to init", e);
+      throw new IllegalStateException("Fail to intialize SAML authentication plugin", e);
     }
   }
 
@@ -115,13 +119,13 @@ public class SamlIdentityProvider implements OAuth2IdentityProvider {
     checkAuthentication(auth);
 
     LOGGER.trace("Attributes received : {}", auth.getAttributes());
-    String login = requireNonNull(getAttribute(auth, samlSettings.getUserLogin()), "Login is missing");
+    String login = requireNonNull(getFirstAttribute(auth, samlSettings.getUserLogin()), "Login is missing");
     UserIdentity.Builder userIdentityBuilder = UserIdentity.builder()
       .setLogin(login)
       .setProviderLogin(login)
-      .setName(requireNonNull(getAttribute(auth, samlSettings.getUserName()), "Name is missing"));
+      .setName(requireNonNull(getFirstAttribute(auth, samlSettings.getUserName()), "Name is missing"));
     samlSettings.getUserEmail().ifPresent(
-      email -> userIdentityBuilder.setEmail(getAttribute(auth, email)));
+      email -> userIdentityBuilder.setEmail(getFirstAttribute(auth, email)));
     samlSettings.getGroupName().ifPresent(
       group -> userIdentityBuilder.setGroups(getGroups(auth, group)));
     context.authenticate(userIdentityBuilder.build());
@@ -154,7 +158,7 @@ public class SamlIdentityProvider implements OAuth2IdentityProvider {
   }
 
   @CheckForNull
-  private static String getAttribute(Auth auth, String key) {
+  private static String getFirstAttribute(Auth auth, String key) {
     Collection<String> attribute = auth.getAttribute(key);
     if (attribute == null || attribute.isEmpty()) {
       return null;
@@ -179,7 +183,8 @@ public class SamlIdentityProvider implements OAuth2IdentityProvider {
     samlData.put("onelogin.saml2.idp.x509cert", samlSettings.getCertificate());
 
     samlData.put("onelogin.saml2.sp.entityid", samlSettings.getApplicationId());
-    samlData.put("onelogin.saml2.sp.assertion_consumer_service.url", callbackUrl != null ? callbackUrl : "http://anyurl");
+    // During callback, the callback URL is by definition not needed, but the Saml2Settings does never allow this setting to be empty...
+    samlData.put("onelogin.saml2.sp.assertion_consumer_service.url", callbackUrl != null ? callbackUrl : ANY_URL);
     SettingsBuilder builder = new SettingsBuilder();
     return builder
       .fromValues(samlData)
