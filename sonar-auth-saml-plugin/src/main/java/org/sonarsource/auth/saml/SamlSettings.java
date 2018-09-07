@@ -69,7 +69,7 @@ public class SamlSettings {
   }
 
   String getLoginUrl() {
-    return urlWithEndingSlash(configuration.get(LOGIN_URL).orElseThrow(() -> new IllegalArgumentException("Login URL is missing")));
+    return configuration.get(LOGIN_URL).orElseThrow(() -> new IllegalArgumentException("Login URL is missing"));
   }
 
   String getCertificate() {
@@ -100,14 +100,6 @@ public class SamlSettings {
       configuration.get(CERTIFICATE).isPresent() &&
       configuration.get(USER_LOGIN_ATTRIBUTE).isPresent() &&
       configuration.get(USER_NAME_ATTRIBUTE).isPresent();
-  }
-
-  @CheckForNull
-  private static String urlWithEndingSlash(@Nullable String url) {
-    if (url != null && !url.endsWith("/")) {
-      return url + "/";
-    }
-    return url;
   }
 
   static List<PropertyDefinition> definitions() {

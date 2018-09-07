@@ -78,7 +78,7 @@ public class SamlSettingsTest {
     assertThat(underTest.getLoginUrl()).isEqualTo("http://localhost:8080/");
 
     settings.setProperty("sonar.auth.saml.loginUrl", "http://localhost:8080");
-    assertThat(underTest.getLoginUrl()).isEqualTo("http://localhost:8080/");
+    assertThat(underTest.getLoginUrl()).isEqualTo("http://localhost:8080");
   }
 
   @Test
