@@ -30,7 +30,7 @@ pipeline {
         label 'linux'
       }
       steps {
-        runGradle "6.7"
+        runGradle "LATEST_RELEASE[6.7]"
       }
     }
 
