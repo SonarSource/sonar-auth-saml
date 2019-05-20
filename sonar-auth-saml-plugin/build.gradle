@@ -49,7 +49,7 @@ jar {
       'Plugin-Description': 'SAML 2.0 Authentication for SonarQube',
       'Plugin-Developers': 'Julien Lancelot',
       'Plugin-Display-Version': displayVersion,
-      'Plugin-Homepage': 'http://redirect.sonarsource.com/plugins/authsaml.html',
+      'Plugin-Homepage': 'http://redirect.sonarsource.com/plugins/saml.html',
       'Plugin-IssueTrackerUrl': 'https://jira.sonarsource.com/browse/SQAUTHSAML',
       'Plugin-Key': 'authsaml',
       'Plugin-License': 'GNU LGPL 3',
