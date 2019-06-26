@@ -27,6 +27,10 @@ pipeline {
       agent {
         label 'linux'
       }
+      environment {
+        SONARSOURCE_QA = 'true'
+        JDK_VERSION = 'Java 11'
+      }
       steps {
         runGradle "DEV"
       }
@@ -34,6 +38,10 @@ pipeline {
     stage('LTS') {
       agent {
         label 'linux'
+      }
+      environment {
+        SONARSOURCE_QA = 'true'
+        JDK_VERSION = 'Java 11'
       }
       steps {
         runGradle "LATEST_RELEASE[6.7]"
