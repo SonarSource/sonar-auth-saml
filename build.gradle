@@ -1,6 +1,6 @@
 plugins {
   id 'org.sonarqube' version '2.6.2'
-  id 'com.jfrog.artifactory' version '4.7.0'
+  id 'com.jfrog.artifactory' version '4.9.7'
   id 'io.spring.dependency-management' version '1.0.4.RELEASE' apply false
   id 'com.github.hierynomus.license' version "0.14.0"
 }
@@ -58,7 +58,7 @@ subprojects {
 
       dependency 'org.assertj:assertj-core:3.9.0'
       dependency 'junit:junit:4.12'
-      dependency('org.mockito:mockito-core:2.15.0') {
+      dependency('org.mockito:mockito-core:2.28.2') {
         exclude 'org.hamcrest:hamcrest-core'
       }
       dependency 'com.tngtech.java:junit-dataprovider:1.9.2'
