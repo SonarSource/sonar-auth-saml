@@ -2,7 +2,7 @@
 
 pipeline {
   agent {
-    lavel 'linux'
+    label 'linux'
   }
   parameters {
     string(name: 'GIT_SHA1', description: 'Git SHA1 (provided by travisci hook job)')
