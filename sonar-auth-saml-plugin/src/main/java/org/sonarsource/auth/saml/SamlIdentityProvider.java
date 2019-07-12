@@ -53,13 +53,12 @@ public class SamlIdentityProvider implements OAuth2IdentityProvider {
   private static final Logger LOGGER = Loggers.get(SamlIdentityProvider.class);
 
   private static final String ANY_URL = "http://anyurl";
+  private static final String STATE_REQUEST_PARAMETER = "RelayState";
 
   private final SamlSettings samlSettings;
-  private final CsrfVerifier csrfVerifier;
 
-  public SamlIdentityProvider(SamlSettings samlSettings, CsrfVerifier csrfVerifier) {
+  public SamlIdentityProvider(SamlSettings samlSettings) {
     this.samlSettings = samlSettings;
-    this.csrfVerifier = csrfVerifier;
   }
 
   @Override
@@ -95,7 +94,7 @@ public class SamlIdentityProvider implements OAuth2IdentityProvider {
   public void init(InitContext context) {
     try {
       Auth auth = newAuth(initSettings(context.getCallbackUrl()), context.getRequest(), context.getResponse());
-      auth.login(csrfVerifier.generateState(context.getRequest(), context.getResponse()));
+      auth.login(context.generateCsrfState());
     } catch (IOException | SettingsException e) {
       throw new IllegalStateException("Fail to intialize SAML authentication plugin", e);
     }
@@ -105,7 +104,7 @@ public class SamlIdentityProvider implements OAuth2IdentityProvider {
   public void callback(CallbackContext context) {
     Auth auth = newAuth(initSettings(null), context.getRequest(), context.getResponse());
     processResponse(auth);
-    csrfVerifier.verifyState(context.getRequest(), context.getResponse());
+    context.verifyCsrfState(STATE_REQUEST_PARAMETER);
 
     LOGGER.trace("Name ID : {}", auth.getNameId());
     checkAuthentication(auth);
@@ -174,7 +173,8 @@ public class SamlIdentityProvider implements OAuth2IdentityProvider {
 
   private Saml2Settings initSettings(@Nullable String callbackUrl) {
     Map<String, Object> samlData = new HashMap<>();
-    // TODO strict mode is unfortunately not compatible with HTTPS configuration on reverse proxy => https://jira.sonarsource.com/browse/SQAUTHSAML-8
+    // TODO strict mode is unfortunately not compatible with HTTPS configuration on reverse proxy =>
+    // https://jira.sonarsource.com/browse/SQAUTHSAML-8
     samlData.put("onelogin.saml2.strict", false);
 
     samlData.put("onelogin.saml2.idp.entityid", samlSettings.getProviderId());

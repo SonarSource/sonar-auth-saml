@@ -37,7 +37,6 @@ import org.sonar.api.server.authentication.UnauthorizedException;
 import org.sonar.api.server.authentication.UserIdentity;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
@@ -50,9 +49,7 @@ public class SamlIdentityProviderTest {
 
   private MapSettings settings = new MapSettings(new PropertyDefinitions(SamlSettings.definitions()));
 
-  private CsrfVerifier csrfVerifier = mock(CsrfVerifier.class);
-
-  private SamlIdentityProvider underTest = new SamlIdentityProvider(new SamlSettings(settings.asConfig()), csrfVerifier);
+  private SamlIdentityProvider underTest = new SamlIdentityProvider(new SamlSettings(settings.asConfig()));
 
   @Test
   public void check_fields() {
@@ -90,7 +87,7 @@ public class SamlIdentityProviderTest {
     underTest.init(context);
 
     verify(context.response).sendRedirect(anyString());
-    verify(csrfVerifier).generateState(any(HttpServletRequest.class), any(HttpServletResponse.class));
+    assertThat(context.generateCsrfState.get()).isTrue();
   }
 
   @Test
@@ -114,7 +111,7 @@ public class SamlIdentityProviderTest {
 
     assertThat(callbackContext.redirectedToRequestedPage.get()).isTrue();
     assertThat(callbackContext.userIdentity.getLogin()).isEqualTo("johndoe");
-    verify(csrfVerifier).verifyState(any(HttpServletRequest.class), any(HttpServletResponse.class));
+    assertThat(callbackContext.verifyState.get()).isTrue();
   }
 
   @Test
@@ -247,9 +244,11 @@ public class SamlIdentityProviderTest {
   private static class DumbInitContext implements OAuth2IdentityProvider.InitContext {
 
     private HttpServletResponse response = mock(HttpServletResponse.class);
+    private final AtomicBoolean generateCsrfState = new AtomicBoolean(false);
 
     @Override
     public String generateCsrfState() {
+      generateCsrfState.set(true);
       return null;
     }
 
@@ -278,7 +277,9 @@ public class SamlIdentityProviderTest {
     private HttpServletResponse response = mock(HttpServletResponse.class);
     private HttpServletRequest request = mock(HttpServletRequest.class);
 
-    final AtomicBoolean redirectedToRequestedPage = new AtomicBoolean(false);
+    private final AtomicBoolean redirectedToRequestedPage = new AtomicBoolean(false);
+    private final AtomicBoolean verifyState = new AtomicBoolean(false);
+
     private UserIdentity userIdentity = null;
 
     public DumbCallbackContext(String encodedResponseFile) {
@@ -297,6 +298,13 @@ public class SamlIdentityProviderTest {
 
     @Override
     public void verifyCsrfState() {
+      throw new IllegalStateException("This method should not be called !");
+    }
+
+    @Override
+    public void verifyCsrfState(String parameterName) {
+      assertThat(parameterName).isEqualTo("RelayState");
+      verifyState.set(true);
     }
 
     @Override
