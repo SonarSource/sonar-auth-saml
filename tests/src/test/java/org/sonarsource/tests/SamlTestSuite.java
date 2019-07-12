@@ -40,7 +40,7 @@ public class SamlTestSuite {
   public static final Orchestrator ORCHESTRATOR;
 
   static {
-    String defaultRuntimeVersion = "true".equals(System.getenv("SONARSOURCE_QA")) ? null : "6.7";
+    String defaultRuntimeVersion = "true".equals(System.getenv("SONARSOURCE_QA")) ? null : "7.9";
     OrchestratorBuilder builder = Orchestrator.builderEnv()
       .setSonarVersion(System.getProperty("sonar.runtimeVersion", defaultRuntimeVersion));
 
