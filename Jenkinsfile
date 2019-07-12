@@ -44,7 +44,7 @@ pipeline {
         JDK_VERSION = 'Java 11'
       }
       steps {
-        runGradle "LATEST_RELEASE[6.7]"
+        runGradle "LATEST_RELEASE[7.9]"
       }
     }
 
