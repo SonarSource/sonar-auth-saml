@@ -21,20 +21,6 @@ pipeline {
         sendAllNotificationQaStarted()
       }
     }
-    // The 2 pipelines are executed in sequence and not in parallel as tests could not been executed in parrallel because there is only one Realm (each test is removing all users from the realm)
-    // In order to use parallel stages, we should have one realm per stage
-    stage('DEV') {
-      agent {
-        label 'linux'
-      }
-      environment {
-        SONARSOURCE_QA = 'true'
-        JDK_VERSION = 'Java 11'
-      }
-      steps {
-        runGradle "DEV"
-      }
-    }
     stage('LTS') {
       agent {
         label 'linux'
@@ -70,7 +56,7 @@ def runGradle(String sqRuntimeVersion) {
   withJava(JDK_VERSION) {
     withQAEnv {
       sh "./gradlew -DbuildNumber=${params.CI_BUILD_NUMBER} -Dsonar.runtimeVersion=${sqRuntimeVersion} " +
-        "-Dorchestrator.artifactory.apiKey=${env.ARTIFACTORY_PRIVATE_API_KEY}  --console plain --no-daemon --info integrationTest"
+        "-Dorchestrator.artifactory.apiKey=${env.ARTIFACTORY_PRIVATE_API_KEY}  --console plain --no-daemon --info build"
     }
   }
 }
