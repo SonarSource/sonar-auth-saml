@@ -1,6 +1,6 @@
 /*
  * SAML 2.0 Authentication for SonarQube
- * Copyright (C) 2018-2019 SonarSource SA
+ * Copyright (C) 2018-2020 SonarSource SA
  * mailto:info AT sonarsource DOT com
  *
  * This program is free software; you can redistribute it and/or
@@ -22,8 +22,6 @@ package org.sonarsource.auth.saml;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
-import javax.annotation.CheckForNull;
-import javax.annotation.Nullable;
 import org.sonar.api.config.Configuration;
 import org.sonar.api.config.PropertyDefinition;
 import org.sonar.api.server.ServerSide;
