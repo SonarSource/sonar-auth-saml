@@ -66,6 +66,7 @@ subprojects {
     }
   }
 
+
   license {
     header = rootProject.file('LICENSE')
     ext.year = Calendar.getInstance().get(Calendar.YEAR)

@@ -12,6 +12,12 @@ compileJava {
 
 compileTestJava.options.encoding = "UTF-8"
 
+jacocoTestReport {
+  reports {
+    xml.enabled true
+  }
+}
+
 dependencies {
   compile 'com.onelogin:java-saml'
   compile 'com.onelogin:java-saml-core'
